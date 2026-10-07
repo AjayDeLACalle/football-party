@@ -7,6 +7,6 @@
     "userInterfaceStyle": "dark",
     "ios": { "supportsTablet": true },
     "android": {},
-    "web": { "name": "Football Party" }
+    "web": { "name": "Football Party", "favicon": "./assets/favicon.png" }
   }
 }
