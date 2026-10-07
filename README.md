@@ -66,4 +66,4 @@ Ein funktionierender Export ersetzt keinen Test auf einem echten iPhone oder And
 
 ## Veröffentlichung
 
-`npm run build:pages` erzeugt `dist-pages/` mit `/football-party`-Basispfad und `.nojekyll`. Nur diese generierten Dateien werden auf `gh-pages` veröffentlicht; dessen Historie beim Aktualisieren erhalten. Der Quellcode ist auf `football-party-prototype` gesichert. GitHub Pages wurde durch den Nutzer aktiviert (Branch `gh-pages`, Verzeichnis `/ (root)`). Der obige HTTPS-Link ist die Testseite für Safari auf dem iPhone.
+`npm run build:pages` erzeugt `dist-pages/` mit `/football-party`-Basispfad und `.nojekyll`. Nur diese generierten Dateien werden auf `gh-pages` veröffentlicht; dessen Historie beim Aktualisieren erhalten. Das zuletzt veröffentlichte JavaScript-Bundle für noch zwischengespeicherte HTML-Seiten zusätzlich behalten, damit ein Browser-Cache während eines Updates keine fehlende Datei anfordert. Der Quellcode ist auf `football-party-prototype` gesichert. GitHub Pages wurde durch den Nutzer aktiviert (Branch `gh-pages`, Verzeichnis `/ (root)`). Der obige HTTPS-Link ist die Testseite für Safari auf dem iPhone.
