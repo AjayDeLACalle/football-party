@@ -24,14 +24,14 @@ export const footballers: Record<Difficulty, readonly string[]> = {
     'Frank Lampard', 'Claude Makélélé', 'Michael Ballack', 'Miroslav Klose',
   ],
   hard: [
-    'Pascal Groß', 'Angelo Stiller', 'Robert Andrich', 'Mitchell Weiser',
-    'Maximilian Mittelstädt', 'Rocco Reitz', 'Jens Stage', 'Romano Schmid',
-    'Morten Hjulmand', 'Lewis Cook', 'Ryan Christie', 'Vitaly Janelt',
-    'Daichi Kamada', 'Pape Matar Sarr', 'Yangel Herrera', 'Aleix García',
-    'Ayoze Pérez', 'Oihan Sancet', 'Dani Vivian', 'Jon Moncayola',
-    'Riccardo Orsolini', 'Mattia Zaccagni', 'Samuele Ricci', 'Andrea Colpani',
-    'Gaizka Mendieta', 'Juan Carlos Valerón', 'Diego Tristán', 'Juninho Pernambucano',
-    'Guti', 'Alberto Gilardino', 'David Pizarro', 'Youri Djorkaeff',
+    'Arnaud Kalimuendo', 'Omari Hutchinson', 'Riccardo Calafiori', 'Georginio Rutter',
+    'Jean-Philippe Mateta', 'Beto', 'Loïs Openda', 'Jonathan David',
+    'Jørgen Strand Larsen', 'Yankuba Minteh', 'Dango Ouattara', 'Jacob Ramsey',
+    'Maxence Lacroix', 'Jean-Clair Todibo', 'Malick Thiaw', 'Milos Kerkez',
+    'Angelo Stiller', 'Deniz Undav', 'Chris Führich', 'Hugo Larsson',
+    'Robin Koch', 'Waldemar Anton', 'Arthur Theate', 'Riccardo Orsolini',
+    'Mattia Zaccagni', 'Samuele Ricci', 'Andrea Pinamonti', 'Javi Guerra',
+    'Ayoze Pérez', 'Oihan Sancet', 'Dani Vivian', 'Maghnes Akliouche',
   ],
 };
 

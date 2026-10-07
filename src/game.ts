@@ -2,6 +2,8 @@ import { bombQuestions, footballers } from './catalog';
 import type { BombQuestion } from './catalog';
 import { MAX_PLAYERS, MIN_PLAYERS, maxImposters } from './lobby';
 import type { Difficulty } from './lobby';
+import { hintsFor } from './footballFacts';
+import type { Hint } from './footballFacts';
 
 export const BOMB_DURATION_MS = 60_000;
 type Random = () => number;
@@ -15,6 +17,7 @@ export function pick<T>(pool: readonly T[], random: Random = Math.random, previo
 export type ImposterRound = {
   players: string[];
   footballer: string;
+  hint?: Hint;
   imposters: number[];
   current: number;
   revealed: boolean;
@@ -22,14 +25,15 @@ export type ImposterRound = {
   phase: 'deal' | 'discussion' | 'result';
 };
 
-export function createImposterRound(players: string[], count: number, difficulty: Difficulty, previous?: string, random: Random = Math.random): ImposterRound {
+export function createImposterRound(players: string[], count: number, difficulty: Difficulty, previous?: string, random: Random = Math.random, hintsEnabled = false): ImposterRound {
   if (players.length < MIN_PLAYERS || players.length > MAX_PLAYERS || !Number.isInteger(count) || count < 1 || count > maxImposters(players.length)) throw new Error('Invalid team');
   const indices = players.map((_, index) => index);
   for (let i = indices.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     [indices[i], indices[j]] = [indices[j], indices[i]];
   }
-  return { players: [...players], footballer: pick(footballers[difficulty], random, previous), imposters: indices.slice(0, count), current: 0, revealed: false, hasSeen: false, phase: 'deal' };
+  const footballer = pick(footballers[difficulty], random, previous);
+  return { players: [...players], footballer, hint: hintsEnabled ? pick(hintsFor(footballer), random) : undefined, imposters: indices.slice(0, count), current: 0, revealed: false, hasSeen: false, phase: 'deal' };
 }
 
 export type RoundAction = 'reveal' | 'hide' | 'next' | 'unmask';

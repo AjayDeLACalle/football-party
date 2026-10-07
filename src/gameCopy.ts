@@ -1,11 +1,11 @@
 export const gameCopy = {
   de: {
     start: 'Spiel starten', again: 'Nochmal spielen', next: 'Weiter',
-    card: 'Karte aufdecken', swipe: 'Nach oben wischen', hide: 'Wieder zudecken',
+    card: 'Ball zur Seite schieben', swipe: 'Ball nach rechts schieben', hide: 'Wieder zudecken',
     pass: 'Gib das Handy an', onlyYou: 'Nur du schaust auf den Bildschirm.',
     footballer: 'DEIN FUSSBALLER', imposter: 'DU BIST IMPOSTER',
     hideFirst: 'Decke deine Karte wieder zu, bevor du das Handy weitergibst.',
-    swipeFirst: 'Wische die Karte hoch und merke dir deine Rolle.',
+    swipeFirst: 'Schiebe den Ball nach rechts und merke dir deine Rolle.',
     continue: 'Deine Karte ist verdeckt. Weiter zum nächsten Spieler.',
     ready: 'ALLE KENNEN IHRE ROLLE.', discuss: 'Jetzt seid ihr dran! Gebt Hinweise, diskutiert und ratet in eurer Gruppe.',
     unmask: 'Imposter aufdecken', impostersWere: 'DIE IMPOSTER WAREN',
@@ -23,11 +23,11 @@ export const gameCopy = {
   },
   en: {
     start: 'Start game', again: 'Play again', next: 'Next',
-    card: 'Reveal card', swipe: 'Swipe up', hide: 'Cover again',
+    card: 'Move ball aside', swipe: 'Slide the ball right', hide: 'Cover again',
     pass: 'Pass the phone to', onlyYou: 'Only you should look at the screen.',
     footballer: 'YOUR FOOTBALLER', imposter: 'YOU ARE THE IMPOSTER',
     hideFirst: 'Cover your card before passing the phone.',
-    swipeFirst: 'Swipe up and remember your role.',
+    swipeFirst: 'Slide the ball right and remember your role.',
     continue: 'Your card is covered. Continue to the next player.',
     ready: 'EVERYONE KNOWS THEIR ROLE.', discuss: 'Your turn! Give clues, discuss and guess together.',
     unmask: 'Reveal imposters', impostersWere: 'THE IMPOSTERS WERE',

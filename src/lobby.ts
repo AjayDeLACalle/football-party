@@ -1,4 +1,4 @@
-export type Mode = 'imposter' | 'bomb';
+export type Mode = 'imposter' | 'bomb' | 'combo';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type Language = 'de' | 'en';
 

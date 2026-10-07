@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, AppState, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AppState, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ModeIcon } from './FootballArt';
 import { advanceRound, BOMB_DURATION_MS, createImposterRound, remainingSeconds, selectQuestion } from './game';
 import type { BombQuestion } from './catalog';
@@ -7,6 +7,9 @@ import { gameCopy } from './gameCopy';
 import { copy } from './copy';
 import type { Difficulty, Language } from './lobby';
 import { useBombSound } from './useBombSound';
+import { GoalCard } from './GoalCard';
+import { Avatar } from './Avatar';
+import type { PlayerProfile } from './profiles';
 
 const C = { bg: '#0c1e16', panel: '#142b20', line: '#2b4835', ink: '#f2f4e5', muted: '#a6b4a3', lime: '#c4fa61', orange: '#ff9b61' };
 
@@ -14,34 +17,8 @@ function Action({ title, onPress, disabled = false, secondary = false }: { title
   return <Pressable accessibilityRole="button" disabled={disabled} accessibilityState={{ disabled }} onPress={onPress} style={({ pressed }) => [s.action, secondary && s.secondary, disabled && { opacity: 0.35 }, pressed && { opacity: 0.75 }]}><Text style={[s.actionText, secondary && { color: C.ink }]}>{title}</Text></Pressable>;
 }
 
-function SecretCard({ revealed, secret, imposter, language, onReveal, onHide }: { revealed: boolean; secret: string; imposter: boolean; language: Language; onReveal: () => void; onHide: () => void }) {
-  const t = gameCopy[language];
-  const offset = useRef(new Animated.Value(0)).current;
-  useEffect(() => { Animated.timing(offset, { toValue: revealed ? -280 : 0, duration: 180, useNativeDriver: true }).start(); }, [revealed, offset]);
-  const pan = useMemo(() => PanResponder.create({
-    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 10 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
-    onPanResponderMove: (_, gesture) => offset.setValue(Math.max(-280, Math.min(0, (revealed ? -280 : 0) + gesture.dy))),
-    onPanResponderRelease: (_, gesture) => {
-      if (!revealed && gesture.dy < -45) onReveal();
-      else if (revealed && gesture.dy > 45) onHide();
-      else Animated.spring(offset, { toValue: revealed ? -280 : 0, useNativeDriver: true }).start();
-    },
-    onPanResponderTerminate: () => Animated.spring(offset, { toValue: revealed ? -280 : 0, useNativeDriver: true }).start(),
-  }), [revealed, offset, onReveal, onHide]);
-  return <View testID="secret-card" style={s.card} {...pan.panHandlers}>
-    <View style={[s.secret, imposter && { backgroundColor: '#402e23' }]}>
-      {revealed && <><ModeIcon bomb={false} size={54} /><Text style={[s.secretLabel, imposter && { color: C.orange }]}>{imposter ? t.imposter : t.footballer}</Text>{!imposter && <Text testID="footballer-name" style={s.secretName}>{secret}</Text>}</>}
-    </View>
-    <Animated.View pointerEvents={revealed ? 'none' : 'auto'} style={[s.cover, { transform: [{ translateY: offset }] }]} accessibilityElementsHidden={revealed} importantForAccessibility={revealed ? 'no-hide-descendants' : 'auto'}>
-      <Pressable accessibilityRole="button" accessibilityLabel={t.card} disabled={revealed} onPress={onReveal} style={s.coverButton}>
-        <View style={s.coverMark}><Text style={s.coverFP}>FP</Text></View><Text style={s.swipeArrow}>↑</Text><Text style={s.swipeText}>{t.swipe}</Text>
-      </Pressable>
-    </Animated.View>
-  </View>;
-}
-
-export function ImposterGame({ players, imposters, difficulty, language, onExit, onFinished }: { players: string[]; imposters: number; difficulty: Difficulty; language: Language; onExit: () => void; onFinished: () => void }) {
-  const [round, setRound] = useState(() => createImposterRound(players, imposters, difficulty));
+export function ImposterGame({ players, profiles, imposters, hintsEnabled, difficulty, language, onExit, onFinished }: { players: string[]; profiles: PlayerProfile[]; hintsEnabled: boolean; imposters: number; difficulty: Difficulty; language: Language; onExit: () => void; onFinished: () => void }) {
+  const [round, setRound] = useState(() => createImposterRound(players, imposters, difficulty, undefined, Math.random, hintsEnabled));
   const t = gameCopy[language];
   const dispatch = (action: Parameters<typeof advanceRound>[1]) => setRound((current) => advanceRound(current, action));
 
@@ -57,8 +34,8 @@ export function ImposterGame({ players, imposters, difficulty, language, onExit,
     <Pressable accessibilityRole="button" onPress={onExit} style={s.exit}><Text style={s.exitText}>← {t.cancel}</Text></Pressable>
     {round.phase === 'deal' ? <>
       <View style={s.topline}><Text style={s.eyebrow}>IMPOSTER</Text><Text style={s.progress}>{round.current + 1} / {round.players.length}</Text></View>
-      <Text style={s.muted}>{t.pass}</Text><Text accessibilityRole="header" style={s.player}>{round.players[round.current]}</Text><Text style={s.description}>{t.onlyYou}</Text>
-      <SecretCard key={round.current} revealed={round.revealed} secret={round.footballer} imposter={round.imposters.includes(round.current)} language={language} onReveal={() => dispatch('reveal')} onHide={() => dispatch('hide')} />
+      <View style={{ alignItems: 'center', marginBottom: 12 }}>{profiles[round.current] && <Avatar config={profiles[round.current].avatar} size={65} />}</View><Text style={s.muted}>{t.pass}</Text><Text accessibilityRole="header" style={s.player}>{round.players[round.current]}</Text><Text style={s.description}>{t.onlyYou}</Text>
+      <GoalCard hint={round.hint?.[language]} key={round.current} revealed={round.revealed} secret={round.footballer} imposter={round.imposters.includes(round.current)} language={language} onReveal={() => dispatch('reveal')} onHide={() => dispatch('hide')} />
       <View style={s.hideSlot}>{round.revealed && <Action title={t.hide} onPress={() => dispatch('hide')} secondary />}</View>
       <Text style={s.cardHint}>{round.revealed ? t.hideFirst : round.hasSeen ? t.continue : t.swipeFirst}</Text>
       <Action title={t.next} disabled={!round.hasSeen || round.revealed} onPress={() => dispatch('next')} />
@@ -68,7 +45,7 @@ export function ImposterGame({ players, imposters, difficulty, language, onExit,
     </> : <>
       <Text style={s.eyebrow}>IMPOSTER</Text><Text accessibilityRole="header" style={s.title}>{t.impostersWere}</Text>
       <View style={s.results}>{round.imposters.map((index) => <View key={index} style={s.result}><ModeIcon size={42} /><Text style={s.resultName}>{round.players[index]}</Text></View>)}</View>
-      <Action title={t.again} onPress={() => setRound(createImposterRound(players, imposters, difficulty, round.footballer))} /><View style={{ height: 12 }} /><Action title={t.back} onPress={onFinished} secondary />
+      <Action title={t.again} onPress={() => setRound(createImposterRound(players, imposters, difficulty, round.footballer, Math.random, hintsEnabled))} /><View style={{ height: 12 }} /><Action title={t.back} onPress={onFinished} secondary />
     </>}
   </View>;
 }
@@ -130,7 +107,6 @@ export function BombGame({ difficulty, language, onExit, onFinished }: { difficu
 const s = StyleSheet.create({
   game: { paddingTop: 8, paddingBottom: 25 }, exit: { alignSelf: 'flex-start', paddingVertical: 14, paddingRight: 20, marginBottom: 20 }, exitText: { fontSize: 13, color: C.muted, fontWeight: '600' },
   topline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }, eyebrow: { color: C.lime, letterSpacing: 2, fontSize: 11, fontWeight: '800' }, progress: { color: C.muted, fontSize: 12, fontWeight: '700' }, muted: { color: C.muted, fontSize: 14 }, player: { color: C.ink, fontSize: 35, fontWeight: '900', fontStyle: 'italic', marginTop: 8 }, description: { color: C.muted, fontSize: 13, marginTop: 8, marginBottom: 24 },
-  card: { height: 280, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: C.line, backgroundColor: C.panel, ...(Platform.OS === 'web' ? { touchAction: 'none', userSelect: 'none' } as object : {}) }, secret: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 18 }, secretLabel: { color: C.lime, fontSize: 15, fontWeight: '900', letterSpacing: 1, textAlign: 'center' }, secretName: { color: C.ink, fontSize: 31, fontWeight: '900', textAlign: 'center', lineHeight: 38 }, cover: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: '#234731' }, coverButton: { flex: 1, alignItems: 'center', justifyContent: 'center' }, coverMark: { width: 76, height: 76, borderRadius: 22, backgroundColor: C.lime, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-8deg' }] }, coverFP: { color: C.bg, fontSize: 37, fontWeight: '900', fontStyle: 'italic' }, swipeArrow: { color: C.lime, fontSize: 35, marginTop: 20 }, swipeText: { color: C.ink, fontSize: 14, fontWeight: '800', marginTop: 3 },
   hideSlot: { minHeight: 69, paddingTop: 12 }, cardHint: { color: C.muted, fontSize: 12, lineHeight: 19, textAlign: 'center', marginVertical: 15 },
   action: { minHeight: 56, justifyContent: 'center', alignItems: 'center', backgroundColor: C.lime, borderRadius: 16, padding: 17 }, actionText: { color: C.bg, fontSize: 15, fontWeight: '800', textAlign: 'center' }, secondary: { backgroundColor: C.panel, borderWidth: 1, borderColor: C.line },
   centerIcon: { alignItems: 'center', paddingVertical: 30 }, title: { fontSize: 36, lineHeight: 42, color: C.ink, fontWeight: '900', fontStyle: 'italic' }, discuss: { fontSize: 16, lineHeight: 25, color: C.muted, marginTop: 22, marginBottom: 28 }, spacer: { height: 65 }, results: { gap: 10, marginTop: 30, marginBottom: 30 }, result: { flexDirection: 'row', alignItems: 'center', gap: 15, padding: 18, borderWidth: 1, borderColor: C.line, borderRadius: 18, backgroundColor: C.panel }, resultName: { flex: 1, color: C.ink, fontSize: 24, fontWeight: '800' },

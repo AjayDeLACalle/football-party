@@ -68,7 +68,8 @@ test('all name pools are nonempty, unique and separate by familiarity', () => {
   assert.equal(new Set(all).size, all.length);
   assert.ok(footballers.easy.includes('Lionel Messi'));
   assert.ok(footballers.easy.includes('Pelé'));
-  assert.ok(footballers.hard.includes('Youri Djorkaeff'));
+  for (const name of ['Arnaud Kalimuendo', 'Omari Hutchinson', 'Riccardo Calafiori']) assert.ok(footballers.hard.includes(name));
+  assert.ok(!footballers.hard.includes('Youri Djorkaeff'));
 });
 
 test('bomb has a translated question pool for every difficulty', () => {
