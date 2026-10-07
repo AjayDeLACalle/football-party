@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "Football Party",
+    "slug": "football-party",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "ios": { "supportsTablet": true },
+    "android": {},
+    "web": { "name": "Football Party" }
+  }
+}
