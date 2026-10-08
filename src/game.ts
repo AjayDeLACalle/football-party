@@ -7,6 +7,11 @@ import type { Hint } from './footballFacts';
 
 export const BOMB_DURATION_MS = 60_000;
 type Random = () => number;
+export type GroupStart = { playerIndex: number; clockwise: boolean };
+export function selectGroupStart(playerCount: number, random: Random = Math.random): GroupStart {
+  if (!Number.isInteger(playerCount) || playerCount < MIN_PLAYERS || playerCount > MAX_PLAYERS) throw new Error('Invalid team');
+  return { playerIndex: Math.floor(random() * playerCount), clockwise: random() < 0.5 };
+}
 
 export function pick<T>(pool: readonly T[], random: Random = Math.random, previous?: T): T {
   const choices = pool.filter((item) => item !== previous);
@@ -25,17 +30,20 @@ export type ImposterRound = {
   coverToken: number;
   hasSeen: boolean;
   phase: 'deal' | 'discussion' | 'result';
+  groupStart: GroupStart;
 };
 
-export function createImposterRound(players: string[], count: number, difficulty: Difficulty, previous?: string, random: Random = Math.random, hintsEnabled = false): ImposterRound {
+export function createImposterRound(players: string[], count: number, difficulty: Difficulty, previous?: string | readonly string[], random: Random = Math.random, hintsEnabled = false): ImposterRound {
   if (players.length < MIN_PLAYERS || players.length > MAX_PLAYERS || !Number.isInteger(count) || count < 1 || count > maxImposters(players.length)) throw new Error('Invalid team');
   const indices = players.map((_, index) => index);
   for (let i = indices.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     [indices[i], indices[j]] = [indices[j], indices[i]];
   }
-  const footballer = pick(footballers[difficulty], random, previous);
-  return { players: [...players], footballer, hint: hintsEnabled ? pick(hintsFor(footballer), random) : undefined, imposters: indices.slice(0, count), current: 0, revealed: false, dealing: false, coverToken: 0, hasSeen: false, phase: 'deal' };
+  const recent = typeof previous === 'string' ? [previous] : previous ?? [];
+  const available = footballers[difficulty].filter(name => !recent.includes(name));
+  const footballer = pick(available.length ? available : footballers[difficulty], random, recent.at(-1));
+  return { players: [...players], footballer, hint: hintsEnabled ? pick(hintsFor(footballer), random) : undefined, imposters: indices.slice(0, count), current: 0, revealed: false, dealing: false, coverToken: 0, hasSeen: false, phase: 'deal', groupStart: selectGroupStart(players.length, random) };
 }
 
 export type RoundAction = 'deal' | 'reveal' | 'hide' | 'next' | 'unmask';
@@ -52,8 +60,9 @@ export function advanceRound(round: ImposterRound, action: RoundAction): Imposte
   return round;
 }
 
-export function selectQuestion(difficulty: Difficulty, previous?: BombQuestion, random: Random = Math.random): BombQuestion {
-  return pick(bombQuestions[difficulty], random, previous);
+export function selectQuestion(difficulty: Difficulty, previous?: BombQuestion, random: Random = Math.random, recent: readonly BombQuestion[] = []): BombQuestion {
+  const available = bombQuestions[difficulty].filter(question => !recent.includes(question));
+  return pick(available.length ? available : bombQuestions[difficulty], random, previous);
 }
 
 export function remainingSeconds(deadline: number, now: number): number {

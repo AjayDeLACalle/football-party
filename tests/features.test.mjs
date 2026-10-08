@@ -99,3 +99,38 @@ test('drawing a card blocks hand-off and hiding invalidates a late reveal comple
   assert.equal(shown.hasSeen,true);
   assert.equal(shown.revealed,true);
 });
+
+test('group start can choose every supported seat and both directions independently of roles', async () => {
+  const { selectGroupStart } = await import('../src/game.ts');
+  for (let count=3;count<=10;count++) {
+    for (let seat=0;seat<count;seat++) {
+      for (const clockwise of [true,false]) {
+        const values=[(seat+0.5)/count,clockwise ? 0 : 0.99999];
+        const result=selectGroupStart(count,()=>values.shift());
+        assert.deepEqual(result,{playerIndex:seat,clockwise});
+      }
+    }
+  }
+  for (const count of [0,2,11,3.5]) assert.throws(()=>selectGroupStart(count));
+});
+
+test('six recent footballers and bomb questions are excluded during repeat rounds', async () => {
+  const { selectQuestion } = await import('../src/game.ts');
+  for (const difficulty of ['easy','medium','hard']) {
+    let recent=[],questions=[];
+    for(let turn=0;turn<20;turn++) {
+      const round=createImposterRound(['A','B','C'],1,difficulty,recent,()=>0);
+      assert.ok(!recent.includes(round.footballer));
+      recent=[...recent.slice(-5),round.footballer];
+      const question=selectQuestion(difficulty,questions.at(-1),()=>0,questions);
+      assert.ok(!questions.includes(question));
+      questions=[...questions.slice(-5),question];
+    }
+  }
+});
+
+test('combination reveal stages follow the same three-second deadline after delayed callbacks', async () => {
+  const { comboRevealStep,COMBO_REVEAL_MS } = await import('../src/comboReveal.ts');
+  assert.equal(COMBO_REVEAL_MS,3000);
+  for (const [elapsed,stage] of [[-1000,0],[0,1],[999,1],[1000,2],[1999,2],[2000,3],[3000,3],[60000,3]]) assert.equal(comboRevealStep(elapsed),stage);
+});

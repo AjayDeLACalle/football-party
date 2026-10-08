@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, AppState, Easing, Platform, StyleSheet, Text, View } from 'react-native';
+import { Animated, AppState, Easing, Platform, StyleSheet, Switch, Text, Vibration, View } from 'react-native';
 import { ModeIcon } from './FootballArt';
-import { advanceRound, BOMB_DURATION_MS, createImposterRound, remainingSeconds, selectQuestion } from './game';
+import { advanceRound, BOMB_DURATION_MS, createImposterRound, remainingSeconds, selectQuestion, selectGroupStart } from './game';
 import type { BombQuestion } from './catalog';
 import { gameCopy } from './gameCopy';
 import { copy } from './copy';
@@ -11,6 +11,7 @@ import { RefereeCard } from './RefereeCard';
 import { Entrance, MotionPressable as Pressable, useReducedMotion } from './Motion';
 import { colors as C } from './theme';
 import { Avatar } from './Avatar';
+import { GroupStart } from './GroupStart';
 import type { PlayerProfile } from './profiles';
 
 function Action({ title, onPress, disabled = false, secondary = false }: { title: string; onPress: () => void; disabled?: boolean; secondary?: boolean }) {
@@ -19,6 +20,12 @@ function Action({ title, onPress, disabled = false, secondary = false }: { title
 
 export function ImposterGame({ players, profiles, imposters, hintsEnabled, difficulty, language, onExit, onFinished, onResult }: { onResult: (kind: 'bomb' | 'imposter' | null) => void; players: string[]; profiles: PlayerProfile[]; hintsEnabled: boolean; imposters: number; difficulty: Difficulty; language: Language; onExit: () => void; onFinished: () => void }) {
   const [round, setRound] = useState(() => createImposterRound(players, imposters, difficulty, undefined, Math.random, hintsEnabled));
+  const recent = useRef([round.footballer]);
+  function replay() {
+    const next = createImposterRound(players, imposters, difficulty, recent.current, Math.random, hintsEnabled);
+    recent.current = [...recent.current.slice(-5), next.footballer];
+    setRound(next);
+  }
   const t = gameCopy[language];
   useEffect(() => { onResult(round.phase === 'result' ? 'imposter' : null); return () => onResult(null); }, [round.phase, onResult]);
   const dispatch = (action: Parameters<typeof advanceRound>[1]) => setRound((current) => advanceRound(current, action));
@@ -40,27 +47,32 @@ export function ImposterGame({ players, profiles, imposters, hintsEnabled, diffi
         {profiles[round.current] && <Avatar config={profiles[round.current].avatar} size={62} />}
         <View style={{ flex: 1 }}><Text style={s.muted}>{t.pass}</Text><Text accessibilityRole="header" style={s.player}>{round.players[round.current]}</Text><Text style={[s.description, { marginBottom: 0 }]}>{t.onlyYou}</Text></View>
       </View>
-      <RefereeCard dealing={round.dealing} coverToken={round.coverToken} onDeal={() => dispatch('deal')} hint={round.hint?.[language]} key={round.current} revealed={round.revealed} secret={round.footballer} imposter={round.imposters.includes(round.current)} language={language} onReveal={() => dispatch('reveal')} onHide={() => dispatch('hide')} />
+      <RefereeCard dealing={round.dealing} coverToken={round.coverToken} onDeal={() => dispatch('deal')} key={round.current} revealed={round.revealed} secret={round.footballer} imposter={round.imposters.includes(round.current)} language={language} onReveal={() => dispatch('reveal')} onHide={() => dispatch('hide')} />
+      {round.revealed && round.imposters.includes(round.current) && round.hint && <View style={s.hintBox}><Text style={s.eyebrow}>{language === 'de' ? 'DEIN HINWEIS' : 'YOUR HINT'}</Text><Text testID="imposter-hint" style={s.hintText}>{round.hint[language]}</Text></View>}
       <View style={s.hideSlot}>{round.revealed && <Action title={t.hide} onPress={() => dispatch('hide')} secondary />}</View>
       <Text style={s.cardHint}>{round.revealed ? t.hideFirst : round.hasSeen ? t.continue : t.swipeFirst}</Text>
       <Action title={t.next} disabled={!round.hasSeen || round.revealed || round.dealing} onPress={() => dispatch('next')} />
     </> : round.phase === 'discussion' ? <>
       <View style={s.centerIcon}><ModeIcon size={80} /></View><Text accessibilityRole="header" style={s.title}>{t.ready}</Text><Text style={s.discuss}>{t.discuss}</Text>
-      <View style={s.spacer} /><Action title={t.unmask} onPress={() => dispatch('unmask')} />
+      <GroupStart start={round.groupStart} profiles={profiles} language={language} /><View style={{ height: 20 }} /><Action title={t.unmask} onPress={() => dispatch('unmask')} />
     </> : <>
       <Text style={s.eyebrow}>IMPOSTER</Text><Text accessibilityRole="header" style={s.title}>{t.impostersWere}</Text>
-      <View style={s.results}>{round.imposters.map((index) => <View key={index} style={s.result}><ModeIcon size={42} /><Text style={s.resultName}>{round.players[index]}</Text></View>)}</View>
-      <Action title={t.again} onPress={() => setRound(createImposterRound(players, imposters, difficulty, round.footballer, Math.random, hintsEnabled))} /><View style={{ height: 12 }} /><Action title={t.back} onPress={onFinished} secondary />
+      <View style={s.results}>{round.imposters.map((index) => <View key={index} style={s.result}><Avatar label={round.players[index]} config={profiles[index].avatar} size={68} /><Text style={s.resultName}>{round.players[index]}</Text></View>)}</View>
+      <Action title={t.again} onPress={replay} /><View style={{ height: 12 }} /><Action title={t.back} onPress={onFinished} secondary />
     </>}
     </Entrance>
   </View>;
 }
 
-export function BombGame({ difficulty, language, onExit, onFinished, onResult }: { onResult: (kind: 'bomb' | 'imposter' | null) => void; difficulty: Difficulty; language: Language; onExit: () => void; onFinished: () => void }) {
+export function BombGame({ profiles, difficulty, language, onExit, onFinished, onResult }: { profiles: PlayerProfile[]; onResult: (kind: 'bomb' | 'imposter' | null) => void; difficulty: Difficulty; language: Language; onExit: () => void; onFinished: () => void }) {
   const [phase, setPhase] = useState<'ready' | 'running' | 'finished'>('ready');
   const [question, setQuestion] = useState<BombQuestion | undefined>();
   const [seconds, setSeconds] = useState(60);
   const [starting, setStarting] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [vibrationEnabled, setVibrationEnabled] = useState(true);
+  const [groupStart, setGroupStart] = useState(() => selectGroupStart(profiles.length));
+  const recent = useRef<BombQuestion[]>([]);
   const deadline = useRef(0);
   const pulse = useRef(new Animated.Value(0)).current;
   const reduced = useReducedMotion();
@@ -72,15 +84,26 @@ export function BombGame({ difficulty, language, onExit, onFinished, onResult }:
   }, [phase, seconds <= 10, reduced, pulse]);
   const sound = useBombSound();
   const t = gameCopy[language];
+  useEffect(() => {
+    if (!audioEnabled) sound.stop();
+  }, [audioEnabled]);
+  useEffect(() => {
+    if (phase !== 'finished' || !vibrationEnabled) return;
+    if (Platform.OS === 'web') navigator.vibrate?.([150, 60, 250]);
+    else Vibration.vibrate([0, 150, 60, 250]);
+  }, [phase, vibrationEnabled]);
 
   async function start() {
     if (starting || phase === 'running') return;
     setStarting(true);
-    if (!await sound.prepare()) { setStarting(false); return; }
+    if (audioEnabled && !await sound.prepare()) { setStarting(false); return; }
+    if (phase === 'finished') setGroupStart(selectGroupStart(profiles.length));
     deadline.current = Date.now() + BOMB_DURATION_MS;
-    setQuestion(selectQuestion(difficulty, question));
+    const next = selectQuestion(difficulty, question, Math.random, recent.current);
+    recent.current = [...recent.current.slice(-5), next];
+    setQuestion(next);
     setSeconds(60);
-    sound.schedule(BOMB_DURATION_MS / 1000);
+    if (audioEnabled) sound.schedule(BOMB_DURATION_MS / 1000);
     setPhase('running');
     setStarting(false);
   }
@@ -104,11 +127,15 @@ export function BombGame({ difficulty, language, onExit, onFinished, onResult }:
     <Entrance key={phase}>
     {phase === 'ready' ? <>
       <View style={s.centerIcon}><ModeIcon bomb size={90} /></View><Text accessibilityRole="header" style={s.title}>{t.bombReady}</Text><Text style={s.discuss}>{t.bombIntro}</Text>
-      <Text style={s.cardHint}>{t.soundHint}</Text><Action title={t.soundTest} onPress={() => { void sound.preview(); }} secondary />
-      {sound.unavailable && <Text accessibilityRole="alert" style={s.soundError}>{t.soundError}</Text>}
-      <View style={{ height: 14 }} /><Action title={starting ? t.loading : t.start} onPress={() => { void start(); }} disabled={starting} /><Text style={s.cardHint}>{t.soundRequired}</Text>
+      <GroupStart start={groupStart} profiles={profiles} language={language} />
+      <View style={s.preference}><Text style={s.preferenceText}>{language === 'de' ? 'Explosionston' : 'Explosion sound'}</Text><Switch accessibilityLabel={language === 'de' ? 'Explosionston' : 'Explosion sound'} value={audioEnabled} onValueChange={setAudioEnabled} trackColor={{ false: C.line, true: '#284A87' }} thumbColor={audioEnabled ? C.blue : C.muted} /></View>
+      <View style={s.preference}><Text style={s.preferenceText}>{language === 'de' ? 'Vibration' : 'Vibration'}</Text><Switch accessibilityLabel="Vibration" value={vibrationEnabled} onValueChange={setVibrationEnabled} trackColor={{ false: C.line, true: '#284A87' }} thumbColor={vibrationEnabled ? C.blue : C.muted} /></View>
+      <Text style={s.cardHint}>{language === 'de' ? 'Vibration wird auf unterstützten Geräten verwendet.' : 'Vibration is used on supported devices.'}</Text>
+      {audioEnabled && <><Text style={s.cardHint}>{t.soundHint}</Text><Action title={t.soundTest} onPress={() => { void sound.preview(); }} secondary /></>}
+      {audioEnabled && sound.unavailable && <Text accessibilityRole="alert" style={s.soundError}>{t.soundError}</Text>}
+      <View style={{ height: 14 }} /><Action title={starting ? t.loading : t.start} onPress={() => { void start(); }} disabled={starting} /><Text style={s.cardHint}>{audioEnabled ? t.soundRequired : (language === 'de' ? 'Ihr spielt diese Runde ohne Ton.' : 'This round plays without sound.')}</Text>
     </> : <>
-      <Text accessibilityRole="header" style={s.question}>{question?.[language]}</Text>
+      <GroupStart start={groupStart} profiles={profiles} language={language} /><Text accessibilityRole="header" style={s.question}>{question?.[language]}</Text>
       <Animated.View style={[{ transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, seconds <= 10 ? 1.045 : 1.018] }) }] }, s.timer, phase === 'finished' && { borderColor: C.red, backgroundColor: '#35111f' }]}>
         <ModeIcon bomb size={65} /><Text accessibilityRole="timer" accessibilityLabel={t.time} testID="bomb-countdown" style={[s.timerText, seconds <= 10 && { color: C.red }]}>{phase === 'finished' ? t.finished : `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`}</Text>
       </Animated.View>
@@ -121,6 +148,7 @@ export function BombGame({ difficulty, language, onExit, onFinished, onResult }:
 }
 
 const s = StyleSheet.create({
+  hintBox: { backgroundColor: '#35111f', borderWidth: 1, borderColor: '#6b2440', padding: 15, marginTop: 12, borderRadius: 16 }, hintText: { color: C.ink, fontSize: 14, lineHeight: 21 }, preference: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 10 }, preferenceText: { color: C.ink, fontSize: 14, fontWeight: '600' },
   game: { paddingTop: 8, paddingBottom: 25 }, exit: { alignSelf: 'flex-start', paddingVertical: 14, paddingRight: 20, marginBottom: 20 }, exitText: { fontSize: 13, color: C.muted, fontWeight: '600' },
   topline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }, eyebrow: { color: C.blue, letterSpacing: 2, fontSize: 11, fontWeight: '800' }, progress: { color: C.muted, fontSize: 12, fontWeight: '700' }, muted: { color: C.muted, fontSize: 14 }, player: { color: C.ink, fontSize: 35, fontWeight: '900', fontStyle: 'italic', marginTop: 8 }, description: { color: C.muted, fontSize: 13, marginTop: 8, marginBottom: 24 },
   hideSlot: { minHeight: 69, paddingTop: 12 }, cardHint: { color: C.muted, fontSize: 12, lineHeight: 19, textAlign: 'center', marginVertical: 15 },

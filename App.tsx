@@ -3,7 +3,7 @@ import { Animated, Easing, Image, Keyboard, KeyboardAvoidingView, Modal, Platfor
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Asset } from 'expo-asset';
-import { ArrowIcon, FootballArt, ModeIcon } from './src/FootballArt';
+import { ArrowIcon, FootballArt, ModeArt, ModeIcon } from './src/FootballArt';
 import { copy } from './src/copy';
 import { gameCopy } from './src/gameCopy';
 import { BombGame, ImposterGame } from './src/GameScreens';
@@ -116,7 +116,7 @@ function PartyApp() {
             </View>
 
             <Animated.View pointerEvents={transitioning ? 'none' : 'auto'} style={{ opacity: scene, transform: [{ translateY: scene.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }}>
-            {screen === 'game' ? (mode === 'combo' ? <ComboGame language={language} onExit={() => navigate('home')} /> : mode === 'imposter' ? <ImposterGame onResult={setResult} profiles={profiles} hintsEnabled={hintsEnabled} players={players} imposters={currentImposters} difficulty={difficulty} language={language} onExit={() => setConfirmExit(true)} onFinished={() => navigate('lobby')} /> : <BombGame onResult={setResult} difficulty={difficulty} language={language} onExit={() => setConfirmExit(true)} onFinished={() => navigate('lobby')} />) : screen === 'home' ? <>
+            {screen === 'game' ? (mode === 'combo' ? <ComboGame language={language} onExit={() => navigate('home')} /> : mode === 'imposter' ? <ImposterGame onResult={setResult} profiles={profiles} hintsEnabled={hintsEnabled} players={players} imposters={currentImposters} difficulty={difficulty} language={language} onExit={() => setConfirmExit(true)} onFinished={() => navigate('lobby')} /> : <BombGame profiles={profiles} onResult={setResult} difficulty={difficulty} language={language} onExit={() => setConfirmExit(true)} onFinished={() => navigate('lobby')} />) : screen === 'home' ? <>
               <View style={s.hero}>
                 <Text style={s.eyebrow}>{t.eyebrow}</Text>
                 <Text accessibilityRole="header" style={s.heroTitle}>{t.title}</Text>
@@ -130,8 +130,8 @@ function PartyApp() {
                   : game === 'bomb' ? { title: t.bomb, tag: t.speed, description: t.bombDescription, action: t.start, accent: C.red }
                     : { title: combo.name, tag: combo.tag, description: combo.description, action: combo.start, accent: '#5592FF' };
                 return <Pressable key={game} accessibilityRole="button" accessibilityLabel={`${info.title}: ${info.action}`} onPress={() => chooseMode(game)} style={({ pressed }) => [s.modeCard, game === 'bomb' && s.bombCard, game === 'combo' && { backgroundColor: '#10192A', borderColor: '#283A58' }, pressed && s.pressed]}>
-                  <View style={s.modeTop}><View style={[s.iconBox, game === 'bomb' && { backgroundColor: '#351521' }, game === 'combo' && { backgroundColor: '#1D2C48' }]}><ModeIcon mode={game} /></View><Text style={[s.modeIndex, { color: info.accent }]}>0{index + 1}</Text></View>
-                  <Text style={[s.modeTag, { color: info.accent }]}>{info.tag}</Text><Text style={s.modeName}>{info.title}</Text><Text style={s.modeDescription}>{info.description}</Text>
+                  <View style={s.modeTop}><Text style={[s.modeTag, { color: info.accent }]}>{info.tag}</Text><Text style={[s.modeIndex, { color: info.accent }]}>0{index + 1}</Text></View><ModeArt mode={game} height={190} />
+                  <Text style={s.modeName}>{info.title}</Text><Text style={s.modeDescription}>{info.description}</Text>
                   <View style={s.cardFooter}><Text style={[s.cardAction, { color: info.accent }]}>{info.action}</Text><ArrowIcon color={info.accent} /></View>
                 </Pressable>;
               })}
