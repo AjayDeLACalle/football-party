@@ -1,6 +1,6 @@
 export const copy = {
   de: {
-    eyebrow: 'EIN HANDY. DEIN TEAM.', title: 'DEIN ABEND.\nDEIN SPIEL.',
+    eyebrow: 'EIN HANDY. DEIN TEAM.', title: 'DEIN TEAM.\nDEINE PARTY.',
     intro: 'Fußballwissen trifft Party. Wer blufft am besten – und wer behält die Nerven?',
     choose: 'WÄHL DEIN SPIEL', players: '3–10 Spieler', onePhone: 'Ein gemeinsames Handy',
     imposter: 'IMPOSTER', bomb: 'BOMBE',
@@ -24,10 +24,10 @@ export const copy = {
     noHint: 'Ohne Hinweis', singleRound: 'Einzelne Runde',
     rules: 'Euer Spiel', imposterRules: 'Die Mitspieler erhalten denselben Namen eines aktiven Fußballers oder einer Legende. Imposter erhalten keinen Namen. Wählt vorher, ob sie einen Hinweis bekommen.',
     bombRules: 'Eine zufällige Frage passend zur Schwierigkeit, passende Fußballernamen und genau 60 Sekunden. Wer das Handy bei der Explosion hält, scheidet aus.',
-    language: 'Sprache wählen', footballArt: 'Fußballer-Cartoons auf einem Fußballplatz',
+    language: 'Sprache wählen', footballArt: 'Eigene Chibi-Maskottchen von Footy Party',
   },
   en: {
-    eyebrow: 'ONE PHONE. YOUR TEAM.', title: 'YOUR NIGHT.\nYOUR GAME.',
+    eyebrow: 'ONE PHONE. YOUR TEAM.', title: 'YOUR TEAM.\nYOUR PARTY.',
     intro: 'Football knowledge meets party night. Who can bluff – and who can keep their cool?',
     choose: 'PICK YOUR GAME', players: '3–10 players', onePhone: 'One shared phone',
     imposter: 'IMPOSTER', bomb: 'BOMB',
@@ -51,6 +51,6 @@ export const copy = {
     noHint: 'No hints', singleRound: 'Single round',
     rules: 'Your game', imposterRules: 'Teammates receive the same name of an active footballer or a legend. Imposters receive no name. Choose beforehand whether they get a hint.',
     bombRules: 'A random question matching your difficulty, footballer names and exactly 60 seconds. Whoever holds the phone when it explodes is out.',
-    language: 'Choose language', footballArt: 'Footballer cartoons on a football pitch',
+    language: 'Choose language', footballArt: 'Original Footy Party chibi mascots',
   },
 } as const;

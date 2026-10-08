@@ -1,4 +1,4 @@
-# Football Party
+# Footy Party
 
 Eine Fußball-Party-App für ein gemeinsames Handy, mit Expo und React Native für iOS, Android und Web. Deutsch und Englisch sind umschaltbar.
 
@@ -6,24 +6,25 @@ Browser-Testseite: **https://ajaydelacalle.github.io/football-party/**
 
 ## Spielbarer Prototyp
 
-- Sportliche Oberfläche mit eigenen Vektor-Cartoons, ohne Vereinswappen oder Sponsoren.
+- Schwarze Oberfläche mit blauen/roten Akzenten, neuen Modus-Icons und animierten Übergängen. Die Systemeinstellung für reduzierte Bewegung wird berücksichtigt.
+- Eigene Chibi-Maskottchen auf Cover und Rollenkarte; echte Fußballernamen bleiben erhalten. Die Figuren stellen keine konkreten Fußballer dar.
+- Persönliches FP-Chibi-Icon nach der Beschreibung des Nutzers: brauner Hautton, schwarze lockige Haare, Ohrringe, blau/rotes Custom-Trikot.
 - Drei Modi: **Imposter**, **Bombe** und **Dreierkette**.
-- Gemeinsames Team aus 3–10 Namen für Imposter und Bombe; Duplikatprüfung und bearbeitbare Figuren.
-- Figuren: jeweils fünf Frisuren, Kopfformen, Hautfarben und Trikots; fünf Zubehörteile plus „Ohne“. Trikotfarben und Muster greifen bekannte Fußball-Looks auf, ohne Logos. Profile bleiben auf diesem Gerät gespeichert (Web: localStorage; native: AsyncStorage). Bei gesperrtem Speicher bleiben sie für die Sitzung verfügbar. Geheime Rollen werden nicht gespeichert.
+- Gemeinsames Team aus 3–10 Namen für Imposter und Bombe; Duplikatprüfung. Jeder neue Mitspieler bekommt automatisch einen zufälligen Chibi aus zwölf Figuren, ohne Charaktereditor. Bis zu zehn Figuren werden ohne Wiederholung zugewiesen.
+- Profile bleiben auf diesem Gerät gespeichert (Web: localStorage; native: AsyncStorage). Alte Namen aus dem Figuren-Editor werden übernommen und erhalten neue Zufallsfiguren. Bei gesperrtem Speicher bleiben Profile für die Sitzung verfügbar. Geheime Rollen werden nicht gespeichert.
 
 ### Imposter
 
 1–3 zufällige Imposter, mindestens ein normaler Mitspieler. Alle normalen Mitspieler sehen denselben Fußballernamen. Vor der Runde könnt ihr Hinweise ein- oder ausschalten; standardmäßig sind sie aus. Mit Hinweisen sehen alle Imposter denselben zufällig gewählten früheren Verein, eine Liga oder eine etablierte Position des Fußballers. Sie sehen seinen Namen nicht.
 
-Das Tor verdeckt die Rolle mit einem Ball: Ball nach rechts schieben, Rolle merken, Ball zurückschieben oder „Wieder zudecken“ drücken, dann weitergeben. „Weiter“ wird erst nach Anschauen und Zudecken freigeschaltet. Der Ball ist auch per Button und Tastatur bedienbar. Geheimnisse werden nur bei aufgedeckter Karte gerendert. Bei App-/Tab-Wechsel oder Fokusverlust wird automatisch verdeckt.
-
-Nach der Verteilung spielt und rät die Gruppe selbst. Die App bietet „Imposter aufdecken“, zeigt die Namen der Imposter und erlaubt eine neue Runde mit einem anderen Fußballer. Keine Abstimmung, Punkte oder automatische Gewinnerentscheidung.
+Ein Chibi-Schiri zieht nach Antippen mit kurzer Animation eine Karte, die nach vorn zoomt: gelb zeigt den Fußballernamen mit eigenem Chibi-Maskottchen, rot die Imposter-Rolle und gegebenenfalls den Hinweis. Danach nach unten wischen oder „Karte verdecken“ drücken, dann weitergeben. „Weiter“ wird erst nach Anschauen und Zudecken freigeschaltet und ist während des Ziehens gesperrt. Button/Tastatur-Bedienung ist ebenfalls vorhanden. Geheimnisse werden nur bei aufgedeckter Karte gerendert. Bei App-/Tab-Wechsel oder Fokusverlust wird sofort verdeckt und eine laufende Ziehanimation abgebrochen.
+Nach der Verteilung spielt und rät die Gruppe selbst. Die App bietet „Imposter aufdecken“, zeigt die Namen der Imposter und erlaubt eine neue Runde mit einem anderen Fußballer. Die Aufdeckung erzeugt einen roten Bildschirm-Effekt. Keine Abstimmung, Punkte oder automatische Gewinnerentscheidung.
 
 Die Schwierigkeit richtet sich nach Bekanntheit: leicht Weltstars und berühmte Legenden; mittel bekannte Topspieler und Legenden; schwer erkennbare Profis aus den Top-5-Ligen, z. B. Arnaud Kalimuendo, Omari Hutchinson und Riccardo Calafiori. Es gibt **96 unterschiedliche Fußballernamen**, 32 pro Stufe. Das ist ein kuratierter Pool, keine vollständige oder automatisch aktualisierte Ligadatenbank.
 
 ### Bombe
 
-Zufällige Frage nach Schwierigkeit, exakt 60 Sekunden und Explosion mit Ton. Leicht z. B. Barcelona-Spieler, mittel brasilianische Verteidiger, schwer Teamkollegen von Ángel Di María. **24 zweisprachige Fragen**. Wer das Handy bei Ablauf hält, ist raus; die Gruppe verwaltet das Ausscheiden. „Nochmal spielen“ zieht eine andere Frage.
+Zufällige Frage nach Schwierigkeit, exakt 60 Sekunden, pulsierender Timer und Explosion mit Ton und rotem Bildschirm-Effekt. Leicht z. B. Barcelona-Spieler, mittel brasilianische Verteidiger, schwer Teamkollegen von Ángel Di María. **24 zweisprachige Fragen**. Wer das Handy bei Ablauf hält, ist raus; die Gruppe verwaltet das Ausscheiden. „Nochmal spielen“ zieht eine andere Frage.
 
 Lautstärke einschalten und Ton vorab testen. Den Browser während der Runde im Vordergrund lassen; mobile Systeme können Hintergrund-Audio und Timer aussetzen.
 
@@ -66,4 +67,4 @@ Ein funktionierender Export ersetzt keinen Test auf einem echten iPhone oder And
 
 ## Veröffentlichung
 
-`npm run build:pages` erzeugt `dist-pages/` mit `/football-party`-Basispfad und `.nojekyll`. Nur diese generierten Dateien werden auf `gh-pages` veröffentlicht; dessen Historie beim Aktualisieren erhalten. Das zuletzt veröffentlichte JavaScript-Bundle für noch zwischengespeicherte HTML-Seiten zusätzlich behalten, damit ein Browser-Cache während eines Updates keine fehlende Datei anfordert. Der Quellcode ist auf `football-party-prototype` gesichert. GitHub Pages wurde durch den Nutzer aktiviert (Branch `gh-pages`, Verzeichnis `/ (root)`). Der obige HTTPS-Link ist die Testseite für Safari auf dem iPhone.
+`npm run build:pages` erzeugt `dist-pages/` mit `/football-party`-Basispfad und `.nojekyll`. Nur diese generierten Dateien werden auf `gh-pages` veröffentlicht; dessen Historie beim Aktualisieren erhalten. Die zuvor veröffentlichten JavaScript-Bundles und zugehörigen Grafikdateien für noch zwischengespeicherte HTML-Seiten zusätzlich behalten, damit ein Browser-Cache während eines Updates keine fehlende Datei anfordert. Der Quellcode ist auf `football-party-prototype` gesichert. GitHub Pages wurde durch den Nutzer aktiviert (Branch `gh-pages`, Verzeichnis `/ (root)`). Der obige HTTPS-Link ist die Testseite für Safari auf dem iPhone.

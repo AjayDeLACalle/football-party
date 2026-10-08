@@ -26,7 +26,7 @@ test('invalid configurations cannot start a round', () => {
 test('you must see and then cover the role before advancing', () => {
   const round = createImposterRound(['A', 'B', 'C'], 1, 'easy');
   assert.equal(advanceRound(round, 'next'), round);
-  const shown = advanceRound(round, 'reveal');
+  const shown = advanceRound(advanceRound(round, 'deal'), 'reveal');
   assert.equal(advanceRound(shown, 'next'), shown);
   const next = advanceRound(advanceRound(shown, 'hide'), 'next');
   assert.equal(next.current, 1);
@@ -39,7 +39,7 @@ test('dealing all cards ends in group discussion with roles unchanged', () => {
   let round = createImposterRound(['A', 'B', 'C', 'D'], 3, 'hard');
   const assigned = [...round.imposters];
   for (let i = 0; i < 4; i++) {
-    round = advanceRound(advanceRound(advanceRound(round, 'reveal'), 'hide'), 'next');
+    round = advanceRound(advanceRound(advanceRound(advanceRound(round, 'deal'), 'reveal'), 'hide'), 'next');
   }
   assert.equal(round.phase, 'discussion');
   assert.deepEqual(round.imposters, assigned);

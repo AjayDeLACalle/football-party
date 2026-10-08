@@ -4,7 +4,7 @@ import { footballers } from '../src/catalog.ts';
 import { footballFacts, hintsFor, positionLabel, positions } from '../src/footballFacts.ts';
 import { advanceRound, createImposterRound } from '../src/game.ts';
 import { combinations, leagues, nationLabel, selectCombination } from '../src/combinations.ts';
-import { defaultAvatar, normalizeAvatar, parseProfiles } from '../src/profiles.ts';
+import { CHARACTER_COUNT, defaultAvatar, normalizeAvatar, parseProfiles, randomAvatar } from '../src/profiles.ts';
 
 test('every selectable footballer has translated factual hints without revealing his name', () => {
   for (const name of Object.values(footballers).flat()) {
@@ -27,7 +27,7 @@ test('hints default to off and enabling them assigns one shared hint for the ent
     assert.ok(hintsFor(round.footballer).some(h => h.de === round.hint.de && h.en === round.hint.en));
     const sharedHint = round.hint;
     for (let seat = 0; seat < 4; seat++) {
-      round = advanceRound(advanceRound(advanceRound(round,'reveal'),'hide'),'next');
+      round = advanceRound(advanceRound(advanceRound(advanceRound(round,'deal'),'reveal'),'hide'),'next');
       assert.equal(round.hint,sharedHint);
     }
   }
@@ -58,20 +58,44 @@ test('new combinations exclude the entire prior tuple even with a deterministic 
   for (const current of combinations) assert.notEqual(selectCombination(current,() => 0).id,current.id);
 });
 
-test('stored profiles reject malformed data and normalize missing or unsafe avatar choices', () => {
+test('stored random characters reject malformed data and normalize unsafe choices', () => {
   for (const raw of [null,'{oops','{}','null','42']) assert.deepEqual(parseProfiles(raw),[]);
   assert.deepEqual(normalizeAvatar(null),defaultAvatar);
-  assert.deepEqual(normalizeAvatar({ hair: -1, head: 5, skin: 1.5, jersey: '2', accessory: 6 }),defaultAvatar);
-  assert.deepEqual(normalizeAvatar({ hair: 4, head: 4, skin: 4, jersey: 4, accessory: 5 }),{ hair: 4, head: 4, skin: 4, jersey: 4, accessory: 5 });
+  for (const value of [-1,12,1.5,'2']) assert.deepEqual(normalizeAvatar({character:value}),defaultAvatar);
+  assert.deepEqual(normalizeAvatar({character:11}),{character:11});
 });
 
-test('device profiles trim names, remove duplicates, cap the team at ten, and round-trip their figures', () => {
+test('new random characters avoid duplicates for the complete ten-player team', () => {
+  const avatars=[];
+  for(let seat=0;seat<10;seat++) avatars.push(randomAvatar(avatars,()=>0));
+  assert.equal(new Set(avatars.map(a=>a.character)).size,10);
+  assert.ok(avatars.every(a=>a.character>=0 && a.character<CHARACTER_COUNT));
+  assert.ok(randomAvatar(avatars,()=>0.99).character<CHARACTER_COUNT);
+});
+
+test('old names survive the character-builder migration and new characters persist', () => {
   const entries = [null,{name:' '},{name:' Alex ',avatar:{hair:4,accessory:5}},{name:'aLeX'},{name:4},...Array.from({length:15},(_,i)=>({name:`Player ${i}`,avatar:{skin:i%5}}))];
-  const profiles = parseProfiles(JSON.stringify(entries));
+  const profiles = parseProfiles(JSON.stringify(entries),()=>0);
   assert.equal(profiles.length,10);
   assert.equal(profiles[0].name,'Alex');
-  assert.equal(profiles[0].avatar.hair,4);
-  assert.equal(profiles[0].avatar.accessory,5);
+  assert.equal(new Set(profiles.map(p=>p.avatar.character)).size,10);
   assert.deepEqual(parseProfiles(JSON.stringify(profiles)),profiles);
-  assert.ok(profiles.every(p => p.name.length <= 20));
+  assert.ok(profiles.every(p=>p.name.length<=20));
+});
+
+test('drawing a card blocks hand-off and hiding invalidates a late reveal completion', () => {
+  let round=createImposterRound(['A','B','C'],1,'easy');
+  assert.equal(advanceRound(round,'reveal'),round);
+  round=advanceRound(round,'deal');
+  assert.equal(round.dealing,true);
+  assert.equal(round.hasSeen,false);
+  assert.equal(advanceRound(round,'next'),round);
+  const cancelled=advanceRound(round,'hide');
+  assert.equal(cancelled.coverToken,round.coverToken+1);
+  assert.equal(cancelled.dealing,false);
+  assert.equal(advanceRound(cancelled,'reveal'),cancelled);
+  assert.equal(advanceRound(cancelled,'next'),cancelled);
+  const shown=advanceRound(advanceRound(cancelled,'deal'),'reveal');
+  assert.equal(shown.hasSeen,true);
+  assert.equal(shown.revealed,true);
 });

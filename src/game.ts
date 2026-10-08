@@ -21,6 +21,8 @@ export type ImposterRound = {
   imposters: number[];
   current: number;
   revealed: boolean;
+  dealing: boolean;
+  coverToken: number;
   hasSeen: boolean;
   phase: 'deal' | 'discussion' | 'result';
 };
@@ -33,16 +35,17 @@ export function createImposterRound(players: string[], count: number, difficulty
     [indices[i], indices[j]] = [indices[j], indices[i]];
   }
   const footballer = pick(footballers[difficulty], random, previous);
-  return { players: [...players], footballer, hint: hintsEnabled ? pick(hintsFor(footballer), random) : undefined, imposters: indices.slice(0, count), current: 0, revealed: false, hasSeen: false, phase: 'deal' };
+  return { players: [...players], footballer, hint: hintsEnabled ? pick(hintsFor(footballer), random) : undefined, imposters: indices.slice(0, count), current: 0, revealed: false, dealing: false, coverToken: 0, hasSeen: false, phase: 'deal' };
 }
 
-export type RoundAction = 'reveal' | 'hide' | 'next' | 'unmask';
+export type RoundAction = 'deal' | 'reveal' | 'hide' | 'next' | 'unmask';
 export function advanceRound(round: ImposterRound, action: RoundAction): ImposterRound {
   if (action === 'unmask') return round.phase === 'discussion' ? { ...round, phase: 'result' } : round;
   if (round.phase !== 'deal') return round;
-  if (action === 'reveal') return { ...round, revealed: true, hasSeen: true };
-  if (action === 'hide') return { ...round, revealed: false };
-  if (action === 'next' && round.hasSeen && !round.revealed) {
+  if (action === 'deal') return { ...round, dealing: true };
+  if (action === 'reveal') return round.dealing ? { ...round, revealed: true, dealing: false, hasSeen: true } : round;
+  if (action === 'hide') return { ...round, revealed: false, dealing: false, coverToken: round.coverToken + 1 };
+  if (action === 'next' && round.hasSeen && !round.revealed && !round.dealing) {
     if (round.current === round.players.length - 1) return { ...round, phase: 'discussion' };
     return { ...round, current: round.current + 1, hasSeen: false, revealed: false };
   }
