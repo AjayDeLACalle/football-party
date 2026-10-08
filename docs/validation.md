@@ -14,4 +14,6 @@ Stand: 8. Oktober 2026.
 
 - Statischer GitHub-Pages-Export: vollständiger mobiler Spielfluss sowie echte 60-Sekunden-Bombenrunde mit Ton und rotem Ergebnis bestanden.
 
+- Öffentliche Pages-Version: HTML entspricht dem Export, SHA-256 von JavaScript, vier Chibi-Grafiken und Favicon stimmt mit lokalen Dateien überein. Vollständiger mobiler Spieltest der veröffentlichten Antworten erfolgreich, ohne JavaScript-/Konsolenfehler. TLS bleibt verifiziert; wegen fehlender Proxy-Zertifikate in Chromium liefert die Prüfhilfe mit curl verifiziert abgerufene öffentliche Antworten an den Browser.
+
 Die Browserprüfung verwendet Chromium mit Touch- und Handygröße. Das ist kein Test auf einem echten iPhone mit Safari oder einem Android-Gerät. Vor Store-Veröffentlichung folgen native Gerätetests, Audio/Unterbrechungen und App-Metadaten.
